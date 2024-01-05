@@ -127,7 +127,8 @@ Secondly, Making all the app and input CSV details available by running the serv
 =\>**step4:** run node credentials_and_readcsv.js
 
 Then next, we run the actual script that makes SA calls and generates the result sheet by runnning the final_end.js from the Utility folder
-=\>**step1:** cd Utility 
+=\>**step1:** cd Utility
+
 =\>**step2:** install the required modules by running the below commands:
 - npm install fs 
 - npm install fast-csv 
@@ -165,4 +166,5 @@ lsit of retrived chunks, but to see the actual retrived chunks
 \'debug_console\': \'lsit of retrived chunks\' (comment this line in the generation_utility)
 }
 
-For your reference both the Query csv and Result csv sheets are added. Please refer it if necessary.
+For your reference both the Query csv and Result csv sheets are added.
+Please refer it if necessary.
