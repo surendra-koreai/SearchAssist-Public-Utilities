@@ -12,8 +12,8 @@ const similarity = require('compute-cosine-similarity');
 const { constrainedMemory } = require("process");
 
 const CSV_file_path = "../data/user_query.csv";
-const output_file_path = "output/output.csv";
-const jsonFilePath = "config/creds.json";
+const output_file_path = "../output/output.csv";
+const jsonFilePath = "../config/creds.json";
 
 app.use(bodyParser.json());
 
@@ -497,7 +497,7 @@ async function get_results(CSV_file_path) {
       appending_objects["Model_Used"] = final_results.result_metrics.Model_used
       // console.log(typeof appending_objects["Answer_Snippet"])
 
-      console.log(appending_objects)
+      // console.log(appending_objects)
 
       appendToCSV(appending_objects, output_file_path)
       updateJsonFile(jsonFilePath, "start_index", index)
