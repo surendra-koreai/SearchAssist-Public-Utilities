@@ -1,0 +1,11 @@
+{
+  "host": "https://searchassist-pilot.kore.ai",
+  "auth_token": "bearer KSugMk5g_2Or_jqB3h9630xPzNVdrF7pog1lRxk-nRuSeWwFb97V5nGZiRgvmzCE",
+  "stream_id": "st-6f4c5bec-b5f5-5238-be40-b039d08f83de",
+  "search_index_id": "sidx-50828260-cc3c-58cf-bdcf-a0eaa9232cd7",
+  "index_pipeline_id": "fip-aee44c4e-9109-5ee8-8011-ec44d7d81c8b",
+  "query_pipeline_id": "fqp-dbd5df8a-ea88-5afc-bd4e-11e084d8aaee",
+  "embedings_model": false,
+  "user_id": "u-19c460f1-759b-5d34-9828-e8fda75e034b",
+  "start_index": 0
+}
