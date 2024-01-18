@@ -191,7 +191,7 @@ async function fuzzyMatch(ref, refList) {
 
   for (let i = 0; i < refList.length; i++) {
     const ratio = fuzzball.ratio(ref, refList[i]);
-    if (ratio === 100) {
+    if (ratio >=85) {
       return ratio;
     }
   }
@@ -380,7 +380,7 @@ async function pre_processing(search_call, user_input, embedings_model) {
     let debugger_chuck_title = []
     let debugger_result_metrics
 
-    if (result_metrics.Ans_Status == false) {
+    if (result_metrics.Ans_Status == false && search_call['debug_answer_response'] ) {
       // console.log("<<<<<<<<<<<<<<<<<< Debugger >>>>>>>>>>>>>>>>>")
 
       if (snippet_type == "extractive_model") {
