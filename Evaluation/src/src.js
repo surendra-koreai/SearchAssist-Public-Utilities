@@ -40,6 +40,7 @@ let payload = {
   isDev: true,
   customize: false,
   answerSearch: true,
+  includeChunksInResponse:true,
   userId: "u-cae4cdc2-5270-57f2-997c-5ed3676a7a08",
   indexPipelineId: "fip-9c3f49e3-c32c-5050-b1c0-85ed98142f8c",
   queryPipelineId: "fqp-f96fa820-6924-5b50-b2b3-2773cb6eeff4",
@@ -104,6 +105,34 @@ function appendToCSV(jsonObject, filePath) {
   throw error;
 }
 }
+
+function appendToJSON(jsonObject, filePath) {
+  // Convert the JSON object to a CSV row
+  let existingData = [];
+  try{
+    try {
+      existingData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (err) {
+      // If the file doesn't exist or has invalid JSON, start with an empty array
+    }
+    
+    // Append the new data to the existing array
+    existingData = existingData.concat(jsonObject);
+    
+    // Stringify the updated JSON data
+    const updatedJson = JSON.stringify(existingData, null, 2); // The third argument (2) is the number of spaces for indentation
+    
+    // Write the updated JSON data back to the file
+    fs.writeFileSync(filePath, updatedJson, 'utf8');
+    console.log('Data appended to JSON file successfully.');
+
+  }
+  catch(error){
+    console.error('Error appending data to CSV file:', error.message);
+    throw error;
+  }
+  }
+ 
 
 
 async function makeAPostRequest(query, details) {
@@ -234,9 +263,9 @@ async function stringIncludes(ref, refList) {
 
 async function get_metrics(user_input, snippet_title, snippet_content, snippet_urls, embedings_model,debug = false) {
   const result_metrics = {}
-
-  snippet_urls = snippet_urls.map(url => decodeURIComponent(url))
-  const url_status = await fuzzyMatch(user_input.Expected_UrL, snippet_urls);
+  try {
+    snippet_urls = snippet_urls.map(url => decodeURIComponent(url))
+  const url_status = await fuzzyMatch(user_input.Expected_URL, snippet_urls);
   const title_status = await fuzzyMatch(user_input.Expected_Title, snippet_title);
   //   console.log(`URL_score : ${url_status}, title_status : ${title_status}`)
 
@@ -313,6 +342,10 @@ async function get_metrics(user_input, snippet_title, snippet_content, snippet_u
     result_metrics['Ans_Status'] = true
     result_metrics['data_index'] = direct_content_score[2]
   }
+  }
+  catch(error){
+    console.log(error)
+  }
 
   return result_metrics;
 }
@@ -322,51 +355,40 @@ async function pre_processing(search_call, user_input, embedings_model) {
   try {
     payload_response = search_call["search_answer_response"]["template"]["graph_answer"]["payload"];
     // console.log(`Payload : ${payload_response}`);
-
-    const snippet_type =
-      search_call["search_answer_response"]["template"]["graph_answer"][
-      "payload"
-      ]["center_panel"]["data"][0]["snippet_type"];
-
-    // console.log(`-------${snippet_type}----------`);
-
-    let input_data;
+    let input_data = {};
     let snippet_title = [];
     let snippet_content = [];
     let snippet_urls = [];
-
-
-    if (snippet_type == "extractive_model") {
-      input_data =
-        search_call["search_answer_response"]["template"]["graph_answer"][
-        "payload"
-        ]["center_panel"]["data"][0];
-      if (Array.isArray(input_data.snippet_content) && input_data.snippet_content.length > 0) {
-        snippet_content_as_string = input_data.snippet_content.join("\n");
-      } 
-      else{
-        snippet_content_as_string = input_data.snippet_content
+    let snippet_type = "";
+    if(Object.keys(payload_response).length){
+      snippet_type =
+      search_call["search_answer_response"]["template"]["graph_answer"][
+      "payload"
+      ]["center_panel"]["data"][0]["snippet_type"];
+      if (snippet_type == "extractive_model") {
+        input_data = payload_response["center_panel"]["data"][0];
+        if (Array.isArray(input_data.snippet_content) && input_data.snippet_content.length > 0) {
+          snippet_content_as_string = input_data.snippet_content.join("\n");
+        } 
+        else{
+          snippet_content_as_string = input_data.snippet_content
+        }
+        snippet_title.push(input_data.snippet_title);
+        snippet_content.push(snippet_content_as_string);
+        snippet_urls.push(input_data.url);
+  
+      } else {
+        input_data =
+        payload_response["center_panel"]["data"][0]["snippet_content"];
+        for (let i = 0; i < input_data.length; i++) {
+          snippet_content.push(input_data[i]["answer_fragment"]);
+          snippet_title.push(input_data[i]["sources"][0]["title"]);
+          snippet_urls.push(input_data[i]["sources"][0]["url"]);
+        }
       }
-
-        
-      snippet_title.push(input_data.snippet_title);
-      snippet_content.push(snippet_content_as_string);
-      snippet_urls.push(input_data.url);
-
-      // console.log(user_input.Expected_Ans)
-      // console.log("--------------------------")
-      // console.log(input_data.snippet_content)
-
-    } else {
-      input_data =
-        search_call["search_answer_response"]["template"]["graph_answer"]["payload"]["center_panel"]["data"][0]["snippet_content"];
-
-      for (let i = 0; i < input_data.length; i++) {
-        snippet_content.push(input_data[i]["answer_fragment"]);
-        snippet_title.push(input_data[i]["sources"][0]["title"]);
-        snippet_urls.push(input_data[i]["sources"][0]["url"]);
-      }
+  
     }
+  
 
     // model performance
     let result_metrics = await get_metrics(user_input, snippet_title, snippet_content, snippet_urls, embedings_model);
@@ -374,22 +396,21 @@ async function pre_processing(search_call, user_input, embedings_model) {
     // console.log(result_metrics)
 
     // calling Debuuger if the ans status is false
-    let debugger_input_data
+    let debugger_input_data = {}
     let debugger_chunk_content = []
     let debugger_chunk_url = []
     let debugger_chuck_title = []
     let debugger_result_metrics
 
-    if (result_metrics.Ans_Status == false && search_call['debug_answer_response'] ) {
+    if (search_call['debug_answer_response'] ) {
       // console.log("<<<<<<<<<<<<<<<<<< Debugger >>>>>>>>>>>>>>>>>")
 
-      if (snippet_type == "extractive_model") {
-        debugger_input_data = search_call["debug_answer_response"]["answer_debug"]["extractive_answers"]["qualified_chunks"]["chunks"]
+      if (search_call["debug_answer_response"]["answer_debug"]["generative_answers"]) {
+        debugger_input_data = search_call["debug_answer_response"]["answer_debug"]["generative_answers"]["qualified_chunks"]["chunks"];
       }
-      else {
-        debugger_input_data = search_call["debug_answer_response"]["answer_debug"]["generative_answers"]["qualified_chunks"]["chunks"]
+      else if (search_call["debug_answer_response"]["answer_debug"]["extractive_answers"]) {
+        debugger_input_data = search_call["debug_answer_response"]["answer_debug"]["extractive_answers"]["qualified_chunks"]["chunks"]; 
       }
-
       for (let i = 0; i < debugger_input_data.length; i++) {
         debugger_chunk_content.push(debugger_input_data[i]["chunk_text"]);
         debugger_chunk_url.push(debugger_input_data[i]["source_url"]);
@@ -410,6 +431,7 @@ async function pre_processing(search_call, user_input, embedings_model) {
       // console.log(debugger_chuck_title)
 
       debugger_result_metrics = await get_metrics(user_input, debugger_chuck_title, debugger_chunk_content, debugger_chunk_url, embedings_model,true)
+      debugger_result_metrics['debug_payload'] = debugger_input_data
       // console.log(debugger_result_metrics)
     }
 
@@ -466,7 +488,7 @@ async function get_results(CSV_file_path) {
       appending_objects["index"] = index
       appending_objects["User_Query"] = csv_data[index]["User_Query"]
       appending_objects["Expected_Ans"] = csv_data[index]["Expected_Ans"]
-      appending_objects["Expected_UrL"] = csv_data[index]["Expected_UrL"]
+      appending_objects["Expected_URL"] = csv_data[index]["Expected_URL"]
       appending_objects["Expected_Title"] = csv_data[index]["Expected_Title"]
       appending_objects["Answer_Snippet"] = final_results.result_metrics.data_index
       appending_objects["Actual_Title"] = final_results.result_metrics.actual_title
@@ -495,10 +517,11 @@ async function get_results(CSV_file_path) {
       }
 
       appending_objects["Model_Used"] = final_results.result_metrics.Model_used
+      appending_objects['Top_Chunks'] = final_results.debugger_result_metrics['debug_payload']
       // console.log(typeof appending_objects["Answer_Snippet"])
 
       // console.log(appending_objects)
-
+      //appendToJSON(appending_objects, output_file_path)
       appendToCSV(appending_objects, output_file_path)
       updateJsonFile(jsonFilePath, "start_index", index)
     }

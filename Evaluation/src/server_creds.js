@@ -77,7 +77,7 @@ function readCSV(filePath, fieldsToAdd) {
 
 // Example usage
 // const filePath = "data/user_query.csv";
-const fieldsToAdd = ["Expected_Title", "Expected_UrL"]; // Replace with your desired field names
+const fieldsToAdd = ["Expected_Title", "Expected_URL"]; // Replace with your desired field names
 
 // readCSV(filePath, fieldsToAdd)
 //   .then((csvData) => {
