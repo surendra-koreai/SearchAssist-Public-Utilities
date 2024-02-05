@@ -17,33 +17,20 @@ const jsonFilePath = "../config/creds.json";
 
 app.use(bodyParser.json());
 
-let headers = {
-  "sec-ch-ua":
-    '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-  "sec-ch-ua-mobile": "?0",
-  Authorization:
-    "bearer Qy3m7COcTKkM_k9E0FNv5YAzmK5ohi5Q1WqID4TyD1-xubrN26-tfb31Hb0G8_6M",
-  "User-Agent":
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  "Content-Type": "application/json",
-  Accept: "application/json, text/javascript, /; q=0.01",
-  Referer: "https://searchassist-app.kore.ai/home/",
-  "X-Requested-With": "XMLHttpRequest",
-  "sec-ch-ua-platform": '"Linux"',
-};
+let headers;
 
 let payload = {
   query: "Upgrade Quick Reference?",
   maxNumOfResults: 5,
-  streamId: "st-0907d239-9b5f-57e5-a473-5ce3ca2e8ec5",
+  streamId: "st-123",
   lang: "en",
   isDev: true,
   customize: false,
   answerSearch: true,
   includeChunksInResponse:true,
-  userId: "u-cae4cdc2-5270-57f2-997c-5ed3676a7a08",
-  indexPipelineId: "fip-9c3f49e3-c32c-5050-b1c0-85ed98142f8c",
-  queryPipelineId: "fqp-f96fa820-6924-5b50-b2b3-2773cb6eeff4",
+  userId: "u-123",
+  indexPipelineId: "fip-123",
+  queryPipelineId: "fqp-123",
   messagePayload: {
     clientMessageId: 1703526077652,
     message: {
@@ -61,7 +48,7 @@ let payload = {
     client: "botbuilder",
     botInfo: {
       chatBot: "automate_testing",
-      taskBotId: "st-0907d239-9b5f-57e5-a473-5ce3ca2e8ec5",
+      taskBotId: "st-123",
       customData: {
         userContext: {},
       },
